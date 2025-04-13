@@ -30,14 +30,12 @@
         "laravel/framework": "^10.0 || ^11.0 || ^12.0"
     },
     "require-dev": {
+        "roave/security-advisories": "dev-latest as 1.0.0",
         "laravel/pint": "^1.22.0",
-        "orchestra/testbench": "^10.2",
         "pestphp/pest": "^3.8.1",
         "pestphp/pest-plugin-type-coverage": "^3.5",
         "phpstan/phpstan": "^1.12.23",
-        "rector/rector": "^1.2.10",
-        "roave/security-advisories": "dev-latest",
-        "symfony/var-dumper": "^7.2.3"
+        "rector/rector": "^1.2.10"
     },
     "autoload": {
         "psr-4": {
