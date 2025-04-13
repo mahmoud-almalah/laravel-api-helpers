@@ -24,7 +24,7 @@ A clean and elegant Laravel package that provides a consistent and customizable 
 ## 📦 Installation
 
 ```bash
-composer require mahmoud-almalah/laravel-api-helpers
+composer require mahmoud-almalah/laravel-api-helpers -W
 ```
 
 No need to register the service provider if you’re using Laravel 5.5+ (package auto-discovery is enabled).
@@ -184,11 +184,3 @@ Pull requests and issues are welcome. Make sure your code passes tests and follo
 
 The MIT License (MIT). See [LICENSE](LICENSE) for more information.
 ```
-
----
-
-لو تحب، أقدر أضيف:
-- أمثلة real-world بالـ controller
-- توضيح كيف تدمجها مع `ExceptionHandler` أو `FormRequest`
-
-هل تحب أجهزلك ملف `LICENSE`, `CONTRIBUTING.md`, و `.github/workflows/test.yml` أيضًا؟
