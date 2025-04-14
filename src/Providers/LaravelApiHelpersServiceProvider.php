@@ -20,10 +20,6 @@ final class LaravelApiHelpersServiceProvider extends BaseServiceProvider
             __DIR__.'/../../config/laravel-api-platform.php' => config_path('laravel-api-platform.php'),
         ], 'laravel-api-platform-config');
 
-        $this->publishes([
-            __DIR__.'/../Middleware' => app_path('Http/Middleware'),
-        ], 'laravel-api-platform-middleware');
-
         if (Config::boolean('laravel-api-platform.localization.status')) {
             /** @var Router $router */
             $router = $this->app->make('router');

@@ -41,17 +41,7 @@ return [
     ],
 
     'localization' => [
-        'status' => true,
-        'locales' => [
-            'en',
-            'ar',
-            'fr',
-            'de',
-            'es',
-            'it',
-            'pt',
-            'ru',
-            'zh',
-        ],
+        'status' => env('API_LOCALIZATION_STATUS', true),
+        'locales' => ['ar', 'en'],
     ],
 ];
