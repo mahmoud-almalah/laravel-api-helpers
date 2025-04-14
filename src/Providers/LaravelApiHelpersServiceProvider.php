@@ -14,12 +14,12 @@ final class LaravelApiHelpersServiceProvider extends BaseServiceProvider
     public function boot(): void
     {
         $this->publishes([
-            __DIR__.'/../../config/http-status.php' => config_path('http-status.php'),
+            __DIR__.'/../../config/laravel-api-platform.php' => config_path('laravel-api-platform.php'),
         ], 'config');
     }
 
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../../config/http-status.php', 'http-status');
+        $this->mergeConfigFrom(__DIR__.'/../../config/laravel-api-platform.php', 'laravel-api-platform');
     }
 }

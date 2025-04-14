@@ -19,6 +19,7 @@ final readonly class CollectionResponse implements Responsable
         private array|AnonymousResourceCollection $collection,
         /** @var Paginator<string, int>|null $paginator */
         private ?Paginator $paginator = null,
+        #[\Illuminate\Container\Attributes\Config('laravel-api-platform.messages.success')]
         private string $message = 'Success',
         private int $status = Response::HTTP_OK
     ) {}
@@ -27,7 +28,7 @@ final readonly class CollectionResponse implements Responsable
     {
         return new JsonResponse(
             data: [
-                'status' => in_array($this->status, Config::array('http-status.code.success'), true),
+                'status' => in_array($this->status, Config::array('laravel-api-platform.code.success'), true),
                 'message' => $this->message,
                 'data' => [
                     $this->key => $this->collection,

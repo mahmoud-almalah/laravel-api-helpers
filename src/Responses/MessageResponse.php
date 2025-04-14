@@ -22,7 +22,7 @@ final readonly class MessageResponse implements Responsable
     {
         return new JsonResponse(
             data: [
-                'status' => in_array($this->status, Config::array('http-status.code.success'), true),
+                'status' => in_array($this->status, Config::array('laravel-api-platform.code.success'), true),
                 'message' => $this->message,
                 'data' => $this->data,
             ],

@@ -24,6 +24,6 @@ test('form request response returns correct validation error structure', functio
 
     expect($response->getStatusCode())->toBe(Response::HTTP_UNPROCESSABLE_ENTITY)
         ->and($responseArray['status'])->toBeFalse()
-        ->and($responseArray['message'])->toBe(Config::string('http-status.messages.validation'))
+        ->and($responseArray['message'])->toBe(Config::string('laravel-api-platform.messages.validation'))
         ->and($responseArray['data'])->toMatchArray($errors);
 });
