@@ -14,7 +14,7 @@
         "form-request"
     ],
     "license": "MIT",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "homepage": "https://github.com/mahmoud-almalah/laravel-api-helpers",
     "support": {
         "source": "https://github.com/mahmoud-almalah/laravel-api-helpers",
