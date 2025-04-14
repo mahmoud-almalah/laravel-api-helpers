@@ -20,6 +20,7 @@ abstract class BaseRequest extends FormRequest
 
         throw new HttpResponseException(
             response: (new FormRequestResponse(
+                message: $validator->errors()->first(),
                 data: $errors
             ))->toResponse($this)
         );

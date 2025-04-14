@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 final readonly class FormRequestResponse implements Responsable
 {
     public function __construct(
+        private ?string $message,
         /** @var array<string, array<int, string>> $data */
         private array $data
     ) {}
@@ -22,7 +23,7 @@ final readonly class FormRequestResponse implements Responsable
         return Response::json(
             data: [
                 'status' => false,
-                'message' => Config::string('laravel-api-platform.messages.validation'),
+                'message' => $this->message ?? Config::string('laravel-api-platform.messages.validation'),
                 'data' => $this->data,
             ],
             status: SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY
