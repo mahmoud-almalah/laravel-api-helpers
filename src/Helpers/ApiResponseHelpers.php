@@ -36,9 +36,10 @@ if (! function_exists('api_validation_error')) {
     /**
      * @param  array<string, array<int, string>>  $errors
      */
-    function api_validation_error(array $errors, string $message = 'Validation Error', int $status = 422): Responsable
+    function api_validation_error(array $errors, string $message = 'Validation Error'): Responsable
     {
         return new MahmoudAlmalah\LaravelApiHelpers\Responses\FormRequestResponse(
+            message: $message,
             data: $errors,
         );
     }
