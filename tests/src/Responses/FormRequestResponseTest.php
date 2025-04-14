@@ -13,7 +13,10 @@ test('form request response returns correct validation error structure', functio
         'password' => ['The password must be at least 8 characters.'],
     ];
 
-    $response = (new FormRequestResponse($errors))->toResponse(new Request());
+    $response = (new FormRequestResponse(
+        message: 'Validation failed',
+        data: $errors
+    ))->toResponse(new Request());
 
     /** @var array{
      *     status: bool,
