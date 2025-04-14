@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
+use Illuminate\Contracts\Pagination\Paginator as ContractsPaginator;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Pagination\Paginator;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator as IlluminatePaginator;
 use Illuminate\Support\Facades\Config;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -17,8 +19,8 @@ final readonly class CollectionResponse implements Responsable
         private string $key,
         /** @var array<string, mixed>|AnonymousResourceCollection $collection */
         private array|AnonymousResourceCollection $collection,
-        /** @var Paginator<string, int>|null $paginator */
-        private ?Paginator $paginator = null,
+        /** @var IlluminatePaginator|ContractsPaginator<string, int>|null $paginator */
+        private null|IlluminatePaginator|ContractsPaginator|LengthAwarePaginator $paginator = null,
         #[\Illuminate\Container\Attributes\Config('laravel-api-platform.messages.success')]
         private string $message = 'Success',
         private int $status = Response::HTTP_OK
