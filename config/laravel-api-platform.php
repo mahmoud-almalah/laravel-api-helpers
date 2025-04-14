@@ -39,4 +39,19 @@ return [
         'not_found' => 'Resource not found',
         'error' => 'An error occurred',
     ],
+
+    'localization' => [
+        'status' => true,
+        'locales' => [
+            'en',
+            'ar',
+            'fr',
+            'de',
+            'es',
+            'it',
+            'pt',
+            'ru',
+            'zh',
+        ],
+    ],
 ];

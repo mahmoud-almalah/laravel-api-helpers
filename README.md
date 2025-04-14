@@ -11,12 +11,16 @@ A clean and elegant Laravel package that provides a consistent and customizable 
 ## ✨ Features
 
 - ✅ Consistent JSON response format
+- ✅ Localization via `Accept-Language` header (optional middleware)
 - ✅ Built-in support for:
   - Collections with or without pagination
   - Single models/resources
   - Simple messages
   - Form request validation errors
 - ✅ Laravel `Responsable` support
+- ✅ Customizable success/error codes and messages
+- ✅ Full test coverage with [Pest](https://pestphp.com)
+- ✅ Easy to use and integrate
 - ✅ Designed for Laravel 11+
 
 ---
@@ -102,6 +106,44 @@ use MahmoudAlmalah\LaravelApiHelpers\Responses\FormRequestResponse;
 
 return new FormRequestResponse($validator->errors()->toArray());
 ```
+---
+
+## 🌐 Localization Middleware
+
+You can enable automatic localization of your API responses based on the `Accept-Language` request header using the `ApiLocalizationMiddleware`.
+
+### ✅ Enable Localization
+
+To activate the middleware globally for your API, first publish the config file:
+
+```bash
+php artisan vendor:publish --tag=laravel-api-helpers-config
+```
+
+Then update the localization settings in `config/laravel-api-platform.php`:
+
+```php
+'localization' => [
+    'status' => true, // Enable or disable localization
+    'locales' => ['en', 'ar'], // Supported locales
+],
+```
+
+If enabled, the package will automatically register a middleware that sets the app locale (and number formatting) based on the `Accept-Language` header:
+
+```http
+Accept-Language: ar
+```
+
+You can also manually assign the middleware to specific routes if preferred:
+
+```php
+Route::middleware(['api.localization'])->get('/demo', fn () => response()->json([
+    'locale' => app()->getLocale(),
+]));
+```
+
+The middleware automatically uses Laravel’s localization and number formatting services to ensure consistent responses based on language.
 
 ---
 
