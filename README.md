@@ -163,11 +163,15 @@ composer test
 
 ```
 src/
+├── Helpers/
+│   ├── ApiResponseHelpers.php
 ├── Responses/
 │   ├── CollectionResponse.php
 │   ├── ModelResponse.php
 │   ├── MessageResponse.php
 │   └── FormRequestResponse.php
+├── Requests/
+│   ├── BaseRequest.php
 └── Providers/
     └── LaravelApiHelpersServiceProvider.php
 ```
@@ -176,11 +180,11 @@ src/
 
 ## 🤝 Contributing
 
-Pull requests and issues are welcome. Make sure your code passes tests and follows the PSR-12 style guide.
+Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) for more information.
 
 ---
 
 ## 📄 License
 
-The MIT License (MIT). See [LICENSE](LICENSE) for more information.
+The MIT License (MIT). See [LICENSE](LICENSE.md) for more information.
 ```
