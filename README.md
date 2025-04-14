@@ -40,7 +40,7 @@ No need to register the service provider if you’re using Laravel 5.5+ (package
 You may optionally publish the config if you need to customize success/error codes or messages:
 
 ```bash
-php artisan vendor:publish --tag=laravel-api-helpers-config
+php artisan vendor:publish --tag=laravel-api-platform-config
 ```
 
 ---
@@ -106,6 +106,21 @@ use MahmoudAlmalah\LaravelApiHelpers\Responses\FormRequestResponse;
 
 return new FormRequestResponse($validator->errors()->toArray());
 ```
+
+Or you can just extend your form request from `BaseRequest`:
+
+```php
+use MahmoudAlmalah\LaravelApiHelpers\Requests\BaseRequest;
+
+class UserRequest extends BaseRequest
+{
+    public function rules(): array
+    {
+        return [/* ... */];
+    }
+}
+```
+
 ---
 
 ## 🌐 Localization Middleware
@@ -117,16 +132,24 @@ You can enable automatic localization of your API responses based on the `Accept
 To activate the middleware globally for your API, first publish the config file:
 
 ```bash
-php artisan vendor:publish --tag=laravel-api-helpers-config
+php artisan vendor:publish --tag=laravel-api-platform-config
 ```
 
 Then update the localization settings in `config/laravel-api-platform.php`:
 
 ```php
 'localization' => [
-    'status' => true, // Enable or disable localization
+    'status' => env('API_LOCALIZATION_STATUS', true), // Enable or disable localization
     'locales' => ['en', 'ar'], // Supported locales
 ],
+```
+
+### ✅ Environment Variables
+
+You can also set the localization settings using environment variables in your `.env` file:
+
+```env
+API_LOCALIZATION_STATUS=true
 ```
 
 If enabled, the package will automatically register a middleware that sets the app locale (and number formatting) based on the `Accept-Language` header:
@@ -138,7 +161,7 @@ Accept-Language: ar
 You can also manually assign the middleware to specific routes if preferred:
 
 ```php
-Route::middleware(['api.localization'])->get('/demo', fn () => response()->json([
+Route::middleware(['api-localization'])->get('/demo', fn () => response()->json([
     'locale' => app()->getLocale(),
 ]));
 ```
@@ -207,6 +230,8 @@ composer test
 src/
 ├── Helpers/
 │   ├── ApiResponseHelpers.php
+│   Middleware/
+│   ├── ApiLocalizationMiddleware.php
 ├── Responses/
 │   ├── CollectionResponse.php
 │   ├── ModelResponse.php
@@ -229,4 +254,3 @@ Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTIN
 ## 📄 License
 
 The MIT License (MIT). See [LICENSE](LICENSE.md) for more information.
-```
