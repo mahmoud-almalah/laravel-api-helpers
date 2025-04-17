@@ -58,7 +58,7 @@ use App\Http\Resources\UserResource;
 return new CollectionResponse(
     key: 'users',
     collection: UserResource::collection($users), // Collection or Paginator
-    paginator: $users instanceof \Illuminate\Contracts\Pagination\Paginator ? $users : null,
+    meta: $users instanceof \Illuminate\Contracts\Pagination\Paginator ? $users : null,
     message: 'Users retrieved successfully'
 );
 ```
