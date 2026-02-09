@@ -22,19 +22,13 @@ test('collection response returns correct json structure without pagination', fu
         status: Response::HTTP_OK
     ))->toResponse(new Illuminate\Http\Request());
 
-    /** @var array{
-     *     status: bool,
-     *     message: string,
-     *     data: array{
-     *         items: array<int, array{id: int, name: string}>
-     *     },
-     *     meta: null
-     * } $responseArray */
-    $responseArray = $response->getData(true);
+    /** @var array{success: bool, message: string, data: array{items: array<int, mixed>}, meta: null} $responseArray */
+    $responseArray = (array) $response->getData(true);
 
     expect($response->getStatusCode())->toBe(200)
-        ->and($responseArray['status'])->toBeTrue()
+        ->and($responseArray['success'])->toBeTrue()
         ->and($responseArray['message'])->toBe('Fetched successfully')
+        ->and($responseArray['data'])->toBeArray()
         ->and($responseArray['data']['items'])->toHaveCount(2)
         ->and($responseArray['meta'])->toBeNull();
 });
@@ -57,28 +51,18 @@ test('collection response returns correct json structure with pagination', funct
     $response = (new CollectionResponse(
         key: 'items',
         collection: $resource,
-        paginator: $paginator,
+        paginator: $paginator, // @phpstan-ignore-line
         message: 'Paginated fetch',
         status: Response::HTTP_OK
     ))->toResponse(new Illuminate\Http\Request());
 
-    /** @var array{
-     *     status: bool,
-     *     message: string,
-     *     data: array{
-     *         items: array<int, array{id: int, name: string}>
-     *     },
-     *     meta: array{
-     *         current_page: int,
-     *         per_page: int,
-     *         has_more_pages: bool
-     *     }
-     * } $responseArray */
-    $responseArray = $response->getData(true);
+    /** @var array{success: bool, message: string, data: array{items: array<int, mixed>}, meta: array<string, mixed>} $responseArray */
+    $responseArray = (array) $response->getData(true);
 
     expect($response->getStatusCode())->toBe(200)
-        ->and($responseArray['status'])->toBeTrue()
+        ->and($responseArray['success'])->toBeTrue()
         ->and($responseArray['message'])->toBe('Paginated fetch')
+        ->and($responseArray['data'])->toBeArray()
         ->and($responseArray['data']['items'])->toHaveCount(2)
         ->and($responseArray['meta'])->toMatchArray([
             'current_page' => 1,
@@ -107,23 +91,13 @@ test('collection response returns correct json structure with empty collection',
         status: Response::HTTP_OK
     ))->toResponse(new Illuminate\Http\Request());
 
-    /** @var array{
-     *     status: bool,
-     *     message: string,
-     *     data: array{
-     *         items: array<int, array{id: int, name: string}>
-     *     },
-     *     meta: array{
-     *         current_page: int,
-     *         per_page: int,
-     *         has_more_pages: bool
-     *     }
-     * } $responseArray */
-    $responseArray = $response->getData(true);
+    /** @var array{success: bool, message: string, data: array{items: array<int, mixed>}, meta: array<string, mixed>} $responseArray */
+    $responseArray = (array) $response->getData(true);
 
     expect($response->getStatusCode())->toBe(200)
-        ->and($responseArray['status'])->toBeTrue()
+        ->and($responseArray['success'])->toBeTrue()
         ->and($responseArray['message'])->toBe('No items found')
+        ->and($responseArray['data'])->toBeArray()
         ->and($responseArray['data']['items'])->toHaveCount(0)
         ->and($responseArray['meta'])->toMatchArray([
             'current_page' => 1,

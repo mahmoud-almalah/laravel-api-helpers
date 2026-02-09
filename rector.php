@@ -13,12 +13,14 @@ return RectorConfig::configure()
     ->withSkip([
         AddOverrideAttributeToOverriddenMethodsRector::class,
     ])
-    ->withPreparedSets(
-        deadCode: true,
-        codeQuality: true,
-        typeDeclarations: true,
-        privatization: true,
-        earlyReturn: true,
-        strictBooleans: true,
-    )
+    ->withSets([
+        Rector\Set\ValueObject\LevelSetList::UP_TO_PHP_83,
+        Rector\Set\ValueObject\SetList::CODE_QUALITY,
+        Rector\Set\ValueObject\SetList::DEAD_CODE,
+        Rector\Set\ValueObject\SetList::CODING_STYLE,
+        Rector\Set\ValueObject\SetList::TYPE_DECLARATION,
+        Rector\Set\ValueObject\SetList::PRIVATIZATION,
+        Rector\Set\ValueObject\SetList::EARLY_RETURN,
+        Rector\Set\ValueObject\SetList::INSTANCEOF,
+    ])
     ->withPhpSets();

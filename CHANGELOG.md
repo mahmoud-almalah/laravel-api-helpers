@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.0] - 2026-02-09
+### Added
+- **Data Transfer Objects (DTO)** support with strict typing and built-in validation.
+- **API Query Filtering**: `HasApiFilters` trait for model filtering and sorting via query parameters.
+- **Enhanced Exception Handling**: `HandlesApiExceptions` trait with dev-mode debug info.
+- `ApiResponse` static class as the unified entry point for all responses.
+- `api-helpers.php` configuration file.
+
+### Changed
+- Refactored all Response classes (`MessageResponse`, `CollectionResponse`, etc.) to be strict and consistent.
+- `BaseRequest` now uses the new response structure for failed validation.
+- JSON response structure now uses `success` (bool) instead of `status` and puts errors under `errors`.
+
+### Removed
+- **Global Helpers**: `api_success`, `api_error`, etc.
+- **Middleware**: `ApiLocalizationMiddleware`.
+- Legacy configuration file `laravel-api-platform.php`.
+
 ## [1.2.0] - 2025-04-14
 ### Updated
 - Updated `CollectionResponse` to support custom pagination formats.

@@ -8,8 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @extends JsonResource<array<string, int|string>>
- *
  * @property-read int|string $id
  * @property-read string $name
  */

@@ -6,7 +6,6 @@ namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Config;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class MessageResponse implements Responsable
@@ -16,16 +15,24 @@ final readonly class MessageResponse implements Responsable
         private ?array $data = null,
         private string $message = 'Success',
         private int $status = Response::HTTP_OK,
+        /** @var array<string, mixed>|null $debug */
+        private ?array $debug = null,
     ) {}
 
     public function toResponse($request): JsonResponse
     {
+        $response = [
+            'success' => $this->status >= 200 && $this->status < 300,
+            'message' => $this->message,
+            'data' => $this->data,
+        ];
+
+        if ($this->debug !== null) {
+            $response['debug'] = $this->debug;
+        }
+
         return new JsonResponse(
-            data: [
-                'status' => in_array($this->status, Config::array('laravel-api-platform.code.success'), true),
-                'message' => $this->message,
-                'data' => $this->data,
-            ],
+            data: $response,
             status: $this->status
         );
     }

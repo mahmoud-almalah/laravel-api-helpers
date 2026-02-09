@@ -7,7 +7,6 @@ namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Config;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class ModelResponse implements Responsable
@@ -23,7 +22,7 @@ final readonly class ModelResponse implements Responsable
     {
         return new JsonResponse(
             data: [
-                'status' => in_array($this->status, Config::array('laravel-api-platform.code.success'), true),
+                'success' => $this->status >= 200 && $this->status < 300,
                 'message' => $this->message,
                 'data' => [
                     $this->key => $this->resource,

@@ -4,253 +4,294 @@
 [![Packagist](https://img.shields.io/packagist/v/mahmoud-almalah/laravel-api-helpers)](https://packagist.org/packages/mahmoud-almalah/laravel-api-helpers)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A clean and elegant Laravel package that provides a consistent and customizable structure for your API responses. Perfect for building maintainable, testable, and user-friendly APIs.
+A clean and elegant Laravel package that provides a consistent and customizable structure for your API development. It includes standardized responses, strict Data Transfer Objects (DTOs), API query filtering, and exception handling.
 
 ---
 
 ## ✨ Features
 
-- ✅ Consistent JSON response format
-- ✅ Localization via `Accept-Language` header (optional middleware)
-- ✅ Built-in support for:
-  - Collections with or without pagination
-  - Single models/resources
-  - Simple messages
-  - Form request validation errors
-- ✅ Laravel `Responsable` support
-- ✅ Customizable success/error codes and messages
-- ✅ Full test coverage with [Pest](https://pestphp.com)
-- ✅ Easy to use and integrate
-- ✅ Designed for Laravel 11+
+- ✅ **Consistent JSON Responses** for success, errors, collections, and resources.
+- ✅ **Data Transfer Objects (DTO)** for type-safe request handling and validation.
+- ✅ **API Query Filtering** to easily filter and sort Eloquent models.
+- ✅ **Standardized Exception Handling** with detailed debug info in development.
+- ✅ **Laravel 11+** Support.
+- ✅ Full test coverage with [Pest](https://pestphp.com).
 
 ---
 
 ## 📦 Installation
 
 ```bash
-composer require mahmoud-almalah/laravel-api-helpers -W
+composer require mahmoud-almalah/laravel-api-helpers
 ```
-
-No need to register the service provider if you’re using Laravel 5.5+ (package auto-discovery is enabled).
 
 ---
 
 ## ⚙️ Configuration
 
-You may optionally publish the config if you need to customize success/error codes or messages:
+You can publish the configuration file to customize the internal settings:
 
 ```bash
-php artisan vendor:publish --tag=laravel-api-platform-config
+php artisan vendor:publish --tag=api-helpers-config
 ```
+
+This will publish `config/api-helpers.php`.
 
 ---
 
 ## 🚀 Usage
 
-### ✅ `CollectionResponse`
+### 1️⃣ Standardized Responses
 
-Returns a list of items with optional pagination metadata.
+Use the `ApiResponse` class to return consistent JSON responses.
 
+#### Success Response
 ```php
-use MahmoudAlmalah\LaravelApiHelpers\Responses\CollectionResponse;
-use App\Http\Resources\UserResource;
+use MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse;
 
-return new CollectionResponse(
-    key: 'users',
-    collection: UserResource::collection($users), // Collection or Paginator
-    meta: $users instanceof \Illuminate\Contracts\Pagination\Paginator ? $users : null,
-    message: 'Users retrieved successfully'
-);
-```
-
----
-
-### ✅ `ModelResponse`
-
-Wrap a single Eloquent model using a Laravel Resource.
-
-```php
-use MahmoudAlmalah\LaravelApiHelpers\Responses\ModelResponse;
-use App\Http\Resources\UserResource;
-
-return new ModelResponse(
-    key: 'user',
-    resource: new UserResource($user),
-    message: 'User fetched successfully'
-);
-```
-
----
-
-### ✅ `MessageResponse`
-
-Send a message-only response with optional data.
-
-```php
-use MahmoudAlmalah\LaravelApiHelpers\Responses\MessageResponse;
-
-return new MessageResponse(
-    data: ['additional' => 'info'],
-    message: 'Operation completed'
-);
-```
-
----
-
-### ❌ `FormRequestResponse`
-
-Use this for form validation errors (typically in custom validation handler).
-
-```php
-use MahmoudAlmalah\LaravelApiHelpers\Responses\FormRequestResponse;
-
-return new FormRequestResponse($validator->errors()->toArray());
-```
-
-Or you can just extend your form request from `BaseRequest`:
-
-```php
-use MahmoudAlmalah\LaravelApiHelpers\Requests\BaseRequest;
-
-class UserRequest extends BaseRequest
+public function index()
 {
-    public function rules(): array
-    {
-        return [/* ... */];
-    }
+    return ApiResponse::success(
+        data: ['foo' => 'bar'],
+        message: 'Operation successful'
+    );
+}
+```
+
+#### Error Response
+```php
+use MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse;
+use Symfony\Component\HttpFoundation\Response;
+
+public function error()
+{
+    return ApiResponse::error(
+        message: 'Something went wrong',
+        status: Response::HTTP_BAD_REQUEST
+    );
+}
+```
+
+#### Resource/Model Response
+Wraps your Eloquent model or JsonResource.
+
+```php
+use MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse;
+use App\Http\Resources\UserResource;
+
+public function show(User $user)
+{
+    return ApiResponse::model(
+        key: 'user',
+        resource: new UserResource($user),
+        message: 'User retrieved successfully'
+    );
+}
+```
+
+#### Collection Response
+Handles pagination metadata automatically.
+
+```php
+use MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse;
+use App\Http\Resources\UserResource;
+
+public function index()
+{
+    $users = User::paginate(10);
+    
+    return ApiResponse::collection(
+        key: 'users',
+        resource: UserResource::collection($users),
+        message: 'Users list'
+    );
 }
 ```
 
 ---
 
-## 🌐 Localization Middleware
+### 2️⃣ Data Transfer Objects (DTO)
 
-You can enable automatic localization of your API responses based on the `Accept-Language` request header using the `ApiLocalizationMiddleware`.
+Replace basic arrays or `FormRequest` validation with strict DTOs.
 
-### ✅ Enable Localization
+**Define your DTO:**
+```php
+namespace App\DTOs;
 
-To activate the middleware globally for your API, first publish the config file:
+use MahmoudAlmalah\LaravelApiHelpers\DTO\DataTransferObject;
 
-```bash
-php artisan vendor:publish --tag=laravel-api-platform-config
+class CreateUserDTO extends DataTransferObject
+{
+    public string $name;
+    public string $email;
+    public ?string $role = 'user';
+    
+    /**
+     * Define validation rules.
+     */
+    public static function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'role' => ['nullable', 'string', 'in:admin,user'],
+        ];
+    }
+}
 ```
 
-Then update the localization settings in `config/laravel-api-platform.php`:
+**Use in Controller:**
+```php
+public function store(Request $request)
+{
+    // Validates request and maps to DTO
+    $dto = CreateUserDTO::fromRequest($request);
+    
+    // Use strictly typed properties
+    User::create($dto->toArray());
+    
+    return ApiResponse::success(message: 'User created');
+}
+```
+
+---
+
+### 3️⃣ API Query Filtering & Sorting
+
+Allow clients to filter and sort results easily via query parameters.
+
+**In your Model:**
+```php
+use MahmoudAlmalah\LaravelApiHelpers\Concerns\HasApiFilters;
+
+class User extends Model
+{
+    use HasApiFilters;
+    
+    // Allow filtering by these columns
+    protected array $filterable = ['status', 'role', 'type'];
+    
+    // Allow sorting by these columns
+    protected array $sortable = ['created_at', 'name'];
+    
+    // Define custom filter logic (optional)
+    public function scopeActive(Builder $query, $value): void
+    {
+        if ($value) {
+            $query->where('active', true);
+        }
+    }
+}
+```
+
+**In Controller:**
+```php
+// GET /users?filter[status]=active&filter[active]=1&sort=-created_at
+public function index(Request $request)
+{
+    $users = User::filter($request->query('filter'))
+                 ->sort($request->query('sort'))
+                 ->paginate();
+                 
+    return ApiResponse::collection('users', UserResource::collection($users));
+}
+```
+
+---
+
+### 4️⃣ Standardized Exception Handling
+
+Catch exceptions and return consistent JSON error responses, including detailed debug info in local development.
+
+**Setup in `bootstrap/app.php` (Laravel 11+):**
 
 ```php
-'localization' => [
-    'status' => env('API_LOCALIZATION_STATUS', true), // Enable or disable localization
-    'locales' => ['en', 'ar'], // Supported locales
-],
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Http\Request;
+use MahmoudAlmalah\LaravelApiHelpers\Concerns\HandlesApiExceptions;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if ($request->is('api/*')) {
+                return HandlesApiExceptions::renderApiException($e);
+            }
+        });
+    })->create();
 ```
 
-### ✅ Environment Variables
+**Debug Info (Local Environment):**
+When `APP_ENV=local`, exceptions will include debug details:
 
-You can also set the localization settings using environment variables in your `.env` file:
-
-```env
-API_LOCALIZATION_STATUS=true
+```json
+{
+    "success": false,
+    "message": "Call to undefined method App\\Models\\User::unknown()",
+    "status": 500,
+    "debug": {
+        "exception": {
+            "class": "BadMethodCallException",
+            "file": "/var/www/html/app/Http/Controllers/UserController.php",
+            "line": 45,
+            "trace": [...]
+        },
+        "request": {
+            "method": "GET",
+            "url": "http://localhost/api/users",
+            "input": []
+        },
+        "time": "2023-10-25T14:30:00+00:00"
+    }
+}
 ```
 
-If enabled, the package will automatically register a middleware that sets the app locale (and number formatting) based on the `Accept-Language` header:
-
-```http
-Accept-Language: ar
+In **Production**, it safely returns:
+```json
+{
+    "success": false,
+    "message": "Server Error",
+    "status": 500
+}
 ```
-
-You can also manually assign the middleware to specific routes if preferred:
-
-```php
-Route::middleware(['api-localization'])->get('/demo', fn () => response()->json([
-    'locale' => app()->getLocale(),
-]));
-```
-
-The middleware automatically uses Laravel’s localization and number formatting services to ensure consistent responses based on language.
 
 ---
 
 ## ✅ Output Format
 
-All responses follow this consistent format:
-
+Success Response:
 ```json
 {
-  "status": true,
-  "message": "Users retrieved successfully",
+  "success": true,
+  "message": "Users list",
   "data": {
-    "users": [/* ... */]
+    "users": [...]
   },
   "meta": {
     "current_page": 1,
-    "per_page": 15,
-    "has_more_pages": true
+    "total": 50
   }
 }
 ```
 
-- `status`: `true` for success, `false` for errors
-- `message`: human-readable message
-- `data`: payload
-- `meta`: only shown when pagination is present
+Error Response:
+```json
+{
+  "success": false,
+  "message": "Resource not found",
+  "status": 404
+}
+```
 
 ---
 
-## ✅ Testing
+## 🧪 Testing
 
-This package comes with full test coverage using [Pest](https://pestphp.com).
+Run the test suite:
 
 ```bash
 composer test
 ```
-
----
-
-## 🛠 Development Tools
-
-```bash
-# Code style
-composer lint
-
-# Static analysis
-composer test:types
-
-# Rector refactoring
-composer refacto
-
-# Full test suite
-composer test
-```
-
----
-
-## 📂 Directory Structure
-
-```
-src/
-├── Helpers/
-│   ├── ApiResponseHelpers.php
-│   Middleware/
-│   ├── ApiLocalizationMiddleware.php
-├── Responses/
-│   ├── CollectionResponse.php
-│   ├── ModelResponse.php
-│   ├── MessageResponse.php
-│   └── FormRequestResponse.php
-├── Requests/
-│   ├── BaseRequest.php
-└── Providers/
-    └── LaravelApiHelpersServiceProvider.php
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) for more information.
-
----
 
 ## 📄 License
 
-The MIT License (MIT). See [LICENSE](LICENSE.md) for more information.
+The MIT License (MIT). See [LICENSE](LICENSE) for more information.

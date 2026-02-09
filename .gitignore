@@ -5,5 +5,8 @@
 /composer.lock
 /phpunit.xml
 /vendor/
+/.idea
+/.vscode
 *.swp
 *.swo
+.DS_Store
