@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.0.1] - 2026-02-15
+### Fixed
+- Changed `HandlesApiExceptions` trait to `ApiExceptionHandler` class to properly support static calls in `bootstrap/app.php` (Fixes incorrect documentation/usage).
+
 ## [2.0.0] - 2026-02-09
 ### Added
 - **Data Transfer Objects (DTO)** support with strict typing and built-in validation.
