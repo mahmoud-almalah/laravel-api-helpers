@@ -9,12 +9,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
-use MahmoudAlmalah\LaravelApiHelpers\Concerns\HandlesApiExceptions;
-
-final class ExceptionHandler
-{
-    use HandlesApiExceptions;
-}
+use MahmoudAlmalah\LaravelApiHelpers\Exceptions\ApiExceptionHandler;
 
 it('handles validation exceptions', function (): void {
     /** @var Validator&Mockery\MockInterface $validator */
@@ -27,7 +22,7 @@ it('handles validation exceptions', function (): void {
     $request = Illuminate\Http\Request::create('/', 'GET');
     app()->instance('request', $request);
 
-    $response = ExceptionHandler::renderApiException($exception);
+    $response = ApiExceptionHandler::render($exception);
 
     expect($response)->toBeInstanceOf(JsonResponse::class);
 
@@ -47,7 +42,7 @@ it('handles model not found exceptions', function (): void {
 
     $exception = new ModelNotFoundException();
 
-    $response = ExceptionHandler::renderApiException($exception);
+    $response = ApiExceptionHandler::render($exception);
 
     expect($response)->toBeInstanceOf(JsonResponse::class);
 
@@ -65,7 +60,7 @@ it('handles authentication exceptions', function (): void {
 
     $exception = new AuthenticationException();
 
-    $response = ExceptionHandler::renderApiException($exception);
+    $response = ApiExceptionHandler::render($exception);
 
     expect($response)->toBeInstanceOf(JsonResponse::class);
 
@@ -83,7 +78,7 @@ it('handles generic exceptions', function (): void {
 
     $exception = new Exception('Something went wrong', 500);
 
-    $response = ExceptionHandler::renderApiException($exception);
+    $response = ApiExceptionHandler::render($exception);
 
     expect($response)->toBeInstanceOf(JsonResponse::class);
 
@@ -101,7 +96,7 @@ it('handles exceptions with custom status codes', function (): void {
 
     $exception = new Exception('Payment Required', 402);
 
-    $response = ExceptionHandler::renderApiException($exception);
+    $response = ApiExceptionHandler::render($exception);
 
     expect($response)->toBeInstanceOf(JsonResponse::class);
 
@@ -129,7 +124,7 @@ it('hides error message in production', function (): void {
 
     $exception = new Exception('Sensitive Database Error', 500);
 
-    $response = ExceptionHandler::renderApiException($exception);
+    $response = ApiExceptionHandler::render($exception);
 
     expect($response)->toBeInstanceOf(JsonResponse::class);
 

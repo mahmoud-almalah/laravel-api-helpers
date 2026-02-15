@@ -13,7 +13,7 @@ A clean and elegant Laravel package that provides a consistent and customizable 
 - ✅ **Consistent JSON Responses** for success, errors, collections, and resources.
 - ✅ **Data Transfer Objects (DTO)** for type-safe request handling and validation.
 - ✅ **API Query Filtering** to easily filter and sort Eloquent models.
-- ✅ **Standardized Exception Handling** with detailed debug info in development.
+- ✅ **Standardized Exception Handling** via `ApiExceptionHandler` class.
 - ✅ **Laravel 11+** Support.
 - ✅ Full test coverage with [Pest](https://pestphp.com).
 
@@ -208,13 +208,13 @@ Catch exceptions and return consistent JSON error responses, including detailed 
 ```php
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\Request;
-use MahmoudAlmalah\LaravelApiHelpers\Concerns\HandlesApiExceptions;
+use MahmoudAlmalah\LaravelApiHelpers\Exceptions\ApiExceptionHandler;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (Throwable $e, Request $request) {
             if ($request->is('api/*')) {
-                return HandlesApiExceptions::renderApiException($e);
+                return ApiExceptionHandler::render($e);
             }
         });
     })->create();

@@ -31,14 +31,37 @@ Then run:
 composer update mahmoud-almalah/laravel-api-helpers
 ```
 
-#### 2. Publish New Configuration
+#### 2. Exception Handling
+
+Previously, there was no standard exception handler. Now, use `ApiExceptionHandler::render($e)` in your exception handler configuration.
+
+#### Before (v1.x):
+Likely manually handling exceptions or utilizing global handlers.
+
+#### After (v2.0):
+In `bootstrap/app.php` (Laravel 11+):
+
+```php
+use MahmoudAlmalah\LaravelApiHelpers\Exceptions\ApiExceptionHandler;
+
+// ...
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(function (Throwable $e, Request $request) {
+        if ($request->is('api/*')) {
+            return ApiExceptionHandler::render($e);
+        }
+    });
+})
+```
+
+#### 3. Publish New Configuration
 The configuration file has changed. You should publish the new one:
 
 ```bash
 php artisan vendor:publish --tag=api-helpers-config
 ```
 
-#### 3. Replace Helpers with `ApiResponse`
+#### 4. Replace Helpers with `ApiResponse`
 You must replace all usages of the deprecated helper functions with the `MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse` class.
 
 **Search & Replace:**
@@ -48,7 +71,7 @@ You must replace all usages of the deprecated helper functions with the `Mahmoud
 - `api_model_response($resource)` -> `ApiResponse::model('key', $resource)`
 - `api_collection_response($resource)` -> `ApiResponse::collection('key', $resource)`
 
-#### 4. Update Frontend/Clients
+#### 5. Update Frontend/Clients
 Your API consumers typically need to update how they check for success.
 
 **Previous Response:**
@@ -68,8 +91,8 @@ Your API consumers typically need to update how they check for success.
 }
 ```
 
-#### 5. Adopt New Features (Optional)
+#### 6. Adopt New Features (Optional)
 You can now leverage:
 - **DTOs**: `MahmoudAlmalah\LaravelApiHelpers\DTO\DataTransferObject`
 - **Filtering**: `use HasApiFilters` in your models.
-- **Exceptions**: Use `HandlesApiExceptions` in your exception handler.
+- **Exceptions**: Use `ApiExceptionHandler` in your exception handler.

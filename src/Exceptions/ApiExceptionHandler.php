@@ -2,21 +2,22 @@
 
 declare(strict_types=1);
 
-namespace MahmoudAlmalah\LaravelApiHelpers\Concerns;
+namespace MahmoudAlmalah\LaravelApiHelpers\Exceptions;
 
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-trait HandlesApiExceptions
+final class ApiExceptionHandler
 {
     /**
      * Render an exception into an HTTP response.
      */
-    public static function renderApiException(Throwable $e): Response
+    public static function render(Throwable $e): Response
     {
         if ($e instanceof ValidationException) {
             return ApiResponse::validation($e->errors(), $e->getMessage())->toResponse(request());
@@ -81,8 +82,8 @@ trait HandlesApiExceptions
             // Attempt to get query logs if enabled
             // We can't easily force enable them here as it might be too late,
             // but we can check if they exist.
-            if (method_exists(\Illuminate\Support\Facades\DB::class, 'getQueryLog')) {
-                $queries = \Illuminate\Support\Facades\DB::getQueryLog();
+            if (method_exists(DB::class, 'getQueryLog')) {
+                $queries = DB::getQueryLog();
                 if (! empty($queries)) {
                     $debug['queries'] = $queries;
                 }

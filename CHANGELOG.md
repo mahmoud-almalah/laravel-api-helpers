@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - **Data Transfer Objects (DTO)** support with strict typing and built-in validation.
 - **API Query Filtering**: `HasApiFilters` trait for model filtering and sorting via query parameters.
-- **Enhanced Exception Handling**: `HandlesApiExceptions` trait with dev-mode debug info.
+- **Enhanced Exception Handling**: `ApiExceptionHandler` class with dev-mode debug info.
 - `ApiResponse` static class as the unified entry point for all responses.
 - `api-helpers.php` configuration file.
 
