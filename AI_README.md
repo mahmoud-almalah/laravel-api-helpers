@@ -3,7 +3,7 @@
 This file provides context for AI agents working on the `laravel-api-helpers` package. It outlines the architectural decisions, coding standards, and preferred patterns.
 
 ## 1. Package Overview
-A strictly typed, opinionated Laravel package for building standardized APIs. It avoids global helpers in favor of static classes and strict DTOs.
+A strictly typed, opinionated Laravel package for building standardized APIs. It avoids global helpers in favor of static classes and standardized Response objects.
 
 **Core Philosophy:**
 - **Strict Typing:** Use PHP types everywhere.
@@ -23,16 +23,8 @@ Always use the `MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse` static c
 - `response()->json()` manually.
 - Old helper functions (`api_success`, etc.).
 
-### B. Data Transfer Objects (`src/DTO/`)
-Use DTOs for all write operations (POST/PUT).
-- Extend `MahmoudAlmalah\LaravelApiHelpers\DTO\DataTransferObject`.
-- Define properties with strict types.
-- Implement `rules()` for validation.
-- Instantiation: `MyDTO::fromRequest($request)`.
-
-### C. Traits (`src/Concerns/`)
-- **`HasApiFilters`**: Use on Models to enable `Model::filter($params)->sort($sort)`.
-- **`HandlesApiExceptions`**: Use in the application's Exception Handler.
+### B. Exceptions (`src/Exceptions/`)
+- Use `ApiExceptionHandler::render($e)` in your application exception handler.
 
 ## 3. Testing Standards
 - **Framework:** [Pest PHP](https://pestphp.com).

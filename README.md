@@ -4,18 +4,17 @@
 [![Packagist](https://img.shields.io/packagist/v/mahmoud-almalah/laravel-api-helpers)](https://packagist.org/packages/mahmoud-almalah/laravel-api-helpers)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A clean and elegant Laravel package that provides a consistent and customizable structure for your API development. It includes standardized responses, strict Data Transfer Objects (DTOs), API query filtering, and exception handling.
+A clean and elegant Laravel package that provides a consistent and customizable structure for your API development. It includes standardized response classes and exception handling.
 
 ---
 
 ## ✨ Features
 
 - ✅ **Consistent JSON Responses** for success, errors, collections, and resources.
-- ✅ **Data Transfer Objects (DTO)** for type-safe request handling and validation.
-- ✅ **API Query Filtering** to easily filter and sort Eloquent models.
 - ✅ **Standardized Exception Handling** via `ApiExceptionHandler` class.
+- ✅ **Strict Typing** and architecture built around extending `BaseApiResponse`.
 - ✅ **Laravel 11+** Support.
-- ✅ Full test coverage with [Pest](https://pestphp.com).
+- ✅ Full test coverage with [Pest](https://pestphp.com) and Max Level PHPStan.
 
 ---
 
@@ -43,7 +42,7 @@ This will publish `config/api-helpers.php`.
 
 ### 1️⃣ Standardized Responses
 
-Use the `ApiResponse` class to return consistent JSON responses.
+Use the `ApiResponse` factory to return consistent JSON responses.
 
 #### Success Response
 ```php
@@ -103,6 +102,7 @@ public function index()
     return ApiResponse::collection(
         key: 'users',
         resource: UserResource::collection($users),
+        paginator: $users,
         message: 'Users list'
     );
 }
@@ -110,96 +110,7 @@ public function index()
 
 ---
 
-### 2️⃣ Data Transfer Objects (DTO)
-
-Replace basic arrays or `FormRequest` validation with strict DTOs.
-
-**Define your DTO:**
-```php
-namespace App\DTOs;
-
-use MahmoudAlmalah\LaravelApiHelpers\DTO\DataTransferObject;
-
-class CreateUserDTO extends DataTransferObject
-{
-    public string $name;
-    public string $email;
-    public ?string $role = 'user';
-    
-    /**
-     * Define validation rules.
-     */
-    public static function rules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'role' => ['nullable', 'string', 'in:admin,user'],
-        ];
-    }
-}
-```
-
-**Use in Controller:**
-```php
-public function store(Request $request)
-{
-    // Validates request and maps to DTO
-    $dto = CreateUserDTO::fromRequest($request);
-    
-    // Use strictly typed properties
-    User::create($dto->toArray());
-    
-    return ApiResponse::success(message: 'User created');
-}
-```
-
----
-
-### 3️⃣ API Query Filtering & Sorting
-
-Allow clients to filter and sort results easily via query parameters.
-
-**In your Model:**
-```php
-use MahmoudAlmalah\LaravelApiHelpers\Concerns\HasApiFilters;
-
-class User extends Model
-{
-    use HasApiFilters;
-    
-    // Allow filtering by these columns
-    protected array $filterable = ['status', 'role', 'type'];
-    
-    // Allow sorting by these columns
-    protected array $sortable = ['created_at', 'name'];
-    
-    // Define custom filter logic (optional)
-    public function scopeActive(Builder $query, $value): void
-    {
-        if ($value) {
-            $query->where('active', true);
-        }
-    }
-}
-```
-
-**In Controller:**
-```php
-// GET /users?filter[status]=active&filter[active]=1&sort=-created_at
-public function index(Request $request)
-{
-    $users = User::filter($request->query('filter'))
-                 ->sort($request->query('sort'))
-                 ->paginate();
-                 
-    return ApiResponse::collection('users', UserResource::collection($users));
-}
-```
-
----
-
-### 4️⃣ Standardized Exception Handling
+### 2️⃣ Standardized Exception Handling
 
 Catch exceptions and return consistent JSON error responses, including detailed debug info in local development.
 
@@ -210,14 +121,13 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\Request;
 use MahmoudAlmalah\LaravelApiHelpers\Exceptions\ApiExceptionHandler;
 
-return Application::configure(basePath: dirname(__DIR__))
-    ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (Throwable $e, Request $request) {
-            if ($request->is('api/*')) {
-                return ApiExceptionHandler::render($e);
-            }
-        });
-    })->create();
+->withExceptions(function (Exceptions $exceptions) {
+    $exceptions->render(function (\Throwable $e, Request $request) {
+        if ($request->is('api/*') || $request->expectsJson()) {
+            return ApiExceptionHandler::render($e);
+        }
+    });
+})
 ```
 
 **Debug Info (Local Environment):**
@@ -227,7 +137,7 @@ When `APP_ENV=local`, exceptions will include debug details:
 {
     "success": false,
     "message": "Call to undefined method App\\Models\\User::unknown()",
-    "status": 500,
+    "data": null,
     "debug": {
         "exception": {
             "class": "BadMethodCallException",
@@ -250,7 +160,7 @@ In **Production**, it safely returns:
 {
     "success": false,
     "message": "Server Error",
-    "status": 500
+    "data": null
 }
 ```
 
@@ -264,11 +174,14 @@ Success Response:
   "success": true,
   "message": "Users list",
   "data": {
-    "users": [...]
+    "users": [
+      ...
+    ]
   },
   "meta": {
     "current_page": 1,
-    "total": 50
+    "per_page": 10,
+    "has_more_pages": true
   }
 }
 ```
@@ -278,7 +191,7 @@ Error Response:
 {
   "success": false,
   "message": "Resource not found",
-  "status": 404
+  "data": null
 }
 ```
 
@@ -290,6 +203,12 @@ Run the test suite:
 
 ```bash
 composer test
+```
+
+Run static analysis:
+
+```bash
+composer test:types
 ```
 
 ## 📄 License

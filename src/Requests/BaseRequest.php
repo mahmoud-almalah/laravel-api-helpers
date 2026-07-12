@@ -12,6 +12,9 @@ use Override;
 
 abstract class BaseRequest extends FormRequest
 {
+    /**
+     * @deprecated Custom validation response handling will be deferred to ApiExceptionHandler in v3.0
+     */
     #[Override]
     final protected function failedValidation(Validator $validator): void
     {

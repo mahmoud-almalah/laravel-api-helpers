@@ -93,6 +93,4 @@ Your API consumers typically need to update how they check for success.
 
 #### 6. Adopt New Features (Optional)
 You can now leverage:
-- **DTOs**: `MahmoudAlmalah\LaravelApiHelpers\DTO\DataTransferObject`
-- **Filtering**: `use HasApiFilters` in your models.
 - **Exceptions**: Use `ApiExceptionHandler` in your exception handler.

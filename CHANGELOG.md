@@ -5,14 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.1.0] - 2026-07-12
+### Added
+- Abstract `BaseApiResponse` class to unify and clean up JSON structure building.
+- Supported optional `$paginator` parameter in `ApiResponse::collection()` facade method for cleaner pagination.
+- Added dynamic lookup of default success/error messages from config file (`api-helpers.php`), with fallback support.
+- Added `@deprecated` warning to `BaseRequest::failedValidation()` to prepare for future validation consolidation.
+
+### Fixed
+- Fixed `FormRequestResponse` using the `Response::json()` facade, replacing it with `new JsonResponse()` for testing and container independence.
+- Decomposed `ApiExceptionHandler::render()` method into focused helper methods to improve readability and maintainability.
+
 ## [2.0.1] - 2026-02-15
 ### Fixed
 - Changed `HandlesApiExceptions` trait to `ApiExceptionHandler` class to properly support static calls in `bootstrap/app.php` (Fixes incorrect documentation/usage).
 
 ## [2.0.0] - 2026-02-09
 ### Added
-- **Data Transfer Objects (DTO)** support with strict typing and built-in validation.
-- **API Query Filtering**: `HasApiFilters` trait for model filtering and sorting via query parameters.
 - **Enhanced Exception Handling**: `ApiExceptionHandler` class with dev-mode debug info.
 - `ApiResponse` static class as the unified entry point for all responses.
 - `api-helpers.php` configuration file.

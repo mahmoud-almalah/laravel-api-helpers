@@ -33,3 +33,33 @@ it('creates a collection response', function (): void {
 
     expect($response)->toBeInstanceOf(CollectionResponse::class);
 });
+
+it('creates a collection response with a paginator', function (): void {
+    $items = collect([['id' => 1]]);
+    $paginator = new Illuminate\Pagination\Paginator(
+        items: $items,
+        perPage: 1,
+        currentPage: 1,
+        options: ['path' => '/']
+    );
+    $resource = DummyResource::collection($paginator);
+
+    $response = ApiResponse::collection(
+        key: 'users',
+        resource: $resource,
+        paginator: $paginator
+    );
+
+    expect($response)->toBeInstanceOf(CollectionResponse::class);
+
+    /** @var Illuminate\Http\JsonResponse $jsonResponse */
+    $jsonResponse = $response->toResponse(new Illuminate\Http\Request());
+    /** @var array{meta: array<string, mixed>} $data */
+    $data = $jsonResponse->getData(true);
+
+    expect($data['meta'])->toMatchArray([
+        'current_page' => 1,
+        'per_page' => 1,
+        'has_more_pages' => false,
+    ]);
+});

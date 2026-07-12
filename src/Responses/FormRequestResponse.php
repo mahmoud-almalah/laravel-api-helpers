@@ -4,28 +4,31 @@ declare(strict_types=1);
 
 namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
-use Illuminate\Contracts\Support\Responsable;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Response;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Symfony\Component\HttpFoundation\Response;
 
-final readonly class FormRequestResponse implements Responsable
+final readonly class FormRequestResponse extends BaseApiResponse
 {
     public function __construct(
-        private ?string $message,
-        /** @var array<string, array<int, string>> $data */
+        ?string $message,
+        /**
+         * @var array<string, array<int, string>> $data
+         *
+         * @deprecated Parameter will be renamed to $errors in v3.0
+         */
         private array $data
-    ) {}
-
-    public function toResponse($request): JsonResponse
-    {
-        return Response::json(
-            data: [
-                'success' => false,
-                'message' => $this->message ?? 'Validation failed',
-                'errors' => $this->data,
-            ],
-            status: SymfonyResponse::HTTP_UNPROCESSABLE_ENTITY
+    ) {
+        parent::__construct(
+            $message ?? 'Validation failed',
+            Response::HTTP_UNPROCESSABLE_ENTITY
         );
+    }
+
+    protected function buildPayload(): array
+    {
+        return [
+            'success' => false,
+            'message' => $this->message,
+            'errors' => $this->data,
+        ];
     }
 }

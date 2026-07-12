@@ -5,38 +5,37 @@ declare(strict_types=1);
 namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
 use Illuminate\Contracts\Pagination\Paginator as ContractsPaginator;
-use Illuminate\Contracts\Support\Responsable;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator as IlluminatePaginator;
 use Symfony\Component\HttpFoundation\Response;
 
-final readonly class CollectionResponse implements Responsable
+final readonly class CollectionResponse extends BaseApiResponse
 {
     public function __construct(
         private string $key,
         /** @var array<string, mixed>|AnonymousResourceCollection $collection */
         private array|AnonymousResourceCollection $collection,
-        /** @var IlluminatePaginator|ContractsPaginator<string, int>|null $paginator */
-        private null|IlluminatePaginator|ContractsPaginator|LengthAwarePaginator $paginator = null,
-        private string $message = 'Success',
-        private int $status = Response::HTTP_OK
-    ) {}
+        /** @var ContractsPaginator<array-key, mixed>|null $paginator */
+        private ?ContractsPaginator $paginator = null,
+        ?string $message = null,
+        int $status = Response::HTTP_OK
+    ) {
+        $message ??= ($status >= 200 && $status < 300)
+            ? self::resolveConfig('api-helpers.defaults.message', 'Success')
+            : self::resolveConfig('api-helpers.defaults.error_message', 'An error occurred');
 
-    public function toResponse($request): JsonResponse
+        parent::__construct($message, $status);
+    }
+
+    protected function buildPayload(): array
     {
-        return new JsonResponse(
-            data: [
-                'success' => $this->status >= 200 && $this->status < 300,
-                'message' => $this->message,
-                'data' => [
-                    $this->key => $this->collection,
-                ],
-                'meta' => $this->getMeta(),
+        return [
+            'success' => $this->isSuccessful(),
+            'message' => $this->message,
+            'data' => [
+                $this->key => $this->collection,
             ],
-            status: $this->status
-        );
+            'meta' => $this->getMeta(),
+        ];
     }
 
     /**

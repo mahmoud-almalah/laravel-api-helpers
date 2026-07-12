@@ -51,7 +51,7 @@ test('collection response returns correct json structure with pagination', funct
     $response = (new CollectionResponse(
         key: 'items',
         collection: $resource,
-        paginator: $paginator, // @phpstan-ignore-line
+        paginator: $paginator,
         message: 'Paginated fetch',
         status: Response::HTTP_OK
     ))->toResponse(new Illuminate\Http\Request());

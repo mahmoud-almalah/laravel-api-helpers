@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
+use Illuminate\Contracts\Pagination\Paginator as ContractsPaginator;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -14,7 +15,7 @@ final class ApiResponse
     /**
      * @param  array<string, mixed>|null  $data
      */
-    public static function success(?array $data = null, string $message = 'Success', int $status = Response::HTTP_OK): Responsable
+    public static function success(?array $data = null, ?string $message = null, int $status = Response::HTTP_OK): Responsable
     {
         return new MessageResponse(
             data: $data,
@@ -28,7 +29,7 @@ final class ApiResponse
      * @param  array<string, mixed>|null  $debug
      */
     public static function error(
-        string $message = 'Error',
+        ?string $message = null,
         int $status = Response::HTTP_INTERNAL_SERVER_ERROR,
         ?array $data = null,
         ?array $debug = null
@@ -44,7 +45,7 @@ final class ApiResponse
     public static function model(
         string $key,
         JsonResource $resource,
-        string $message = 'Success',
+        ?string $message = null,
         int $status = Response::HTTP_OK
     ): Responsable {
         return new ModelResponse(
@@ -55,15 +56,20 @@ final class ApiResponse
         );
     }
 
+    /**
+     * @param  ContractsPaginator<array-key, mixed>|null  $paginator
+     */
     public static function collection(
         string $key,
         AnonymousResourceCollection $resource,
-        string $message = 'Success',
-        int $status = Response::HTTP_OK
+        ?string $message = null,
+        int $status = Response::HTTP_OK,
+        ?ContractsPaginator $paginator = null
     ): Responsable {
         return new CollectionResponse(
             key: $key,
             collection: $resource,
+            paginator: $paginator,
             message: $message,
             status: $status,
         );
