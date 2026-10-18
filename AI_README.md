@@ -26,7 +26,7 @@ Always use the `MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse` static c
 
 ### B. Exceptions (`src/Exceptions/`)
 - Register with `ApiExceptionHandler::register($exceptions)` in `bootstrap/app.php`, or call `ApiExceptionHandler::render($e, $request)` from your own renderer.
-- Shortcuts: `ApiResponse::notFound()`, `unauthorized()`, `forbidden()`. Messages come from `api-helpers.messages.*` config; do not hardcode new strings.
+- Shortcuts: `ApiResponse::notFound()`, `unauthorized()`, `forbidden()`. Built-in messages live in `lang/{en,ar}/messages.php` (`api-helpers::messages.*`) and are resolved through `ApiConfig::message()`; never hardcode user-facing strings, add a key to every lang file instead.
 - `pagination.detect` and `pagination.include_totals` are opt-in config flags and must stay `false` by default.
 
 ### C. JSON contract (never change without a major version)

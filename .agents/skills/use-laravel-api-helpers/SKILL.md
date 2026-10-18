@@ -76,4 +76,6 @@ To utilize the package's standard validation error format, simply create your Fo
 
 ## 4. Configuration
 
-The response messages fallback to configuration. To customize the default success/error messages, ensure `config/api-helpers.php` is published and modified.
+Built-in messages (`Unauthenticated`, `Validation failed`, `Resource not found`, `Server Error`, default success/error) are translations that follow the current locale; English and Arabic ship with the package. Do not write a middleware that overrides config to translate them. To edit or add a language run `php artisan vendor:publish --tag=api-helpers-lang` and edit `lang/vendor/api-helpers/{locale}/messages.php`.
+
+`config/api-helpers.php` (publish with `--tag=api-helpers-config`) only needs editing to force a fixed message (`defaults.*`) or to enable the opt-in pagination options.

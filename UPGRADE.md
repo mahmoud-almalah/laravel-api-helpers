@@ -94,3 +94,11 @@ Your API consumers typically need to update how they check for success.
 #### 6. Adopt New Features (Optional)
 You can now leverage:
 - **Exceptions**: Use `ApiExceptionHandler` in your exception handler.
+
+## Upgrading To 2.3.0
+
+No breaking changes to the JSON response. Messages are now translations that follow the current locale (English and Arabic are included).
+
+- If you translated messages with a middleware that overwrites `api-helpers.messages.*` or `api-helpers.defaults.*` at runtime (for example `HELPER_MESSAGES`), delete it and publish the translations instead: `php artisan vendor:publish --tag=api-helpers-lang`.
+- The `messages` config group added in 2.2.0 was removed; edit `lang/vendor/api-helpers/{locale}/messages.php` instead.
+- `defaults.message` and `defaults.error_message` now default to `null`. A published config that still contains the old English defaults keeps translating; set a string only to force one fixed message for every locale.

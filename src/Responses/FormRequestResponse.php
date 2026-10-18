@@ -17,7 +17,7 @@ final readonly class FormRequestResponse extends BaseApiResponse
         private array $data
     ) {
         parent::__construct(
-            $message ?? ApiConfig::string('api-helpers.messages.validation', 'Validation failed'),
+            $message ?? ApiConfig::message('validation'),
             Response::HTTP_UNPROCESSABLE_ENTITY
         );
     }

@@ -36,7 +36,7 @@ final class ApiResponse
     public static function notFound(?string $message = null): Responsable
     {
         return self::error(
-            $message ?? ApiConfig::string('api-helpers.messages.not_found', 'Resource not found'),
+            $message ?? ApiConfig::message('not_found'),
             Response::HTTP_NOT_FOUND,
         );
     }
@@ -44,7 +44,7 @@ final class ApiResponse
     public static function unauthorized(?string $message = null): Responsable
     {
         return self::error(
-            $message ?? ApiConfig::string('api-helpers.messages.unauthenticated', 'Unauthenticated'),
+            $message ?? ApiConfig::message('unauthenticated'),
             Response::HTTP_UNAUTHORIZED,
         );
     }
@@ -52,7 +52,7 @@ final class ApiResponse
     public static function forbidden(?string $message = null): Responsable
     {
         return self::error(
-            $message ?? ApiConfig::string('api-helpers.messages.forbidden', 'Forbidden'),
+            $message ?? ApiConfig::message('forbidden'),
             Response::HTTP_FORBIDDEN,
         );
     }

@@ -7,18 +7,46 @@ namespace MahmoudAlmalah\LaravelApiHelpers\Support;
 use Throwable;
 
 /**
- * Typed access to `config/api-helpers.php` that tolerates a missing or
- * partial container, so responses stay usable outside a booted application.
+ * Typed access to the package config and translated messages that tolerates a
+ * missing or partial container, so responses stay usable outside a booted application.
  *
  * @internal
  */
 final class ApiConfig
 {
-    public static function string(string $key, string $default): string
-    {
-        $value = self::get($key);
+    private const string TRANSLATION_NAMESPACE = 'api-helpers::messages.';
 
-        return is_string($value) ? $value : $default;
+    /**
+     * @var array<string, string>|null
+     */
+    private static ?array $english = null;
+
+    /**
+     * A user-facing message from `lang/{locale}/messages.php`.
+     *
+     * A non-empty string config value ($overrideKey) wins over the translation,
+     * except the old built-in English default, which older published configs
+     * still contain and which must not stop translation.
+     */
+    public static function message(string $name, ?string $overrideKey = null): string
+    {
+        $override = $overrideKey === null ? null : self::get($overrideKey);
+
+        if (is_string($override) && $override !== '' && $override !== (self::english()[$name] ?? null)) {
+            return $override;
+        }
+
+        try {
+            $translated = __(self::TRANSLATION_NAMESPACE.$name);
+        } catch (Throwable) {
+            $translated = null;
+        }
+
+        if (is_string($translated) && $translated !== self::TRANSLATION_NAMESPACE.$name) {
+            return $translated;
+        }
+
+        return self::english()[$name] ?? $name;
     }
 
     public static function bool(string $key, bool $default): bool
@@ -35,5 +63,20 @@ final class ApiConfig
         } catch (Throwable) {
             return null;
         }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function english(): array
+    {
+        if (self::$english === null) {
+            /** @var array<string, string> $messages */
+            $messages = require __DIR__.'/../../lang/en/messages.php';
+
+            self::$english = $messages;
+        }
+
+        return self::$english;
     }
 }

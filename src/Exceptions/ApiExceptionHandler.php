@@ -80,7 +80,7 @@ final class ApiExceptionHandler
         $isProduction = app()->environment('production');
 
         $message = $isProduction && $status === Response::HTTP_INTERNAL_SERVER_ERROR
-            ? ApiConfig::string('api-helpers.messages.server_error', 'Server Error')
+            ? ApiConfig::message('server_error')
             : $e->getMessage();
 
         return ApiResponse::error(

@@ -38,16 +38,36 @@ This will publish `config/api-helpers.php`:
 
 | Key | Default | Purpose |
 | --- | --- | --- |
-| `defaults.message` / `defaults.error_message` | `Success` / `An error occurred` | Message when none is given |
-| `messages.*` | `Validation failed`, `Resource not found`, `Unauthenticated`, `Forbidden`, `Server Error` | Exception and shortcut messages |
+| `defaults.message` / `defaults.error_message` | `null` | Force one fixed message for every locale. `null` uses the translation |
 | `pagination.detect` | `false` | Read the paginator from the resource when `paginator:` is omitted |
 | `pagination.include_totals` | `false` | Add `total` and `last_page` to `meta` (length aware paginators) |
 
-The defaults keep the JSON shape exactly as documented below. To translate messages, set them at runtime, for example in a service provider's `boot()`:
+The defaults keep the JSON shape exactly as documented below.
+
+### 🌍 Translations
+
+All built-in messages (`Success`, `An error occurred`, `Validation failed`, `Resource not found`, `Unauthenticated`, `Forbidden`, `Server Error`) are translations that follow the current locale. English and Arabic are included, so with `Accept-Language: ar` (and a middleware that sets the locale) a 401 returns `غير مسجل الدخول` with no extra code.
+
+To change a message or add a language, publish the files and edit them:
+
+```bash
+php artisan vendor:publish --tag=api-helpers-lang
+```
 
 ```php
-config(['api-helpers.messages.not_found' => __('Resource not found')]);
+// lang/vendor/api-helpers/fr/messages.php
+return [
+    'success' => 'Succès',
+    'error' => 'Une erreur est survenue',
+    'validation' => 'Échec de la validation',
+    'not_found' => 'Ressource introuvable',
+    'unauthenticated' => 'Non authentifié',
+    'forbidden' => 'Interdit',
+    'server_error' => 'Erreur du serveur',
+];
 ```
+
+Messages you pass explicitly (`ApiResponse::notFound('...')`, `ApiResponse::success(message: __('...'))`) are returned as given.
 
 ---
 

@@ -46,7 +46,7 @@ abstract readonly class BaseApiResponse implements Responsable
     private function defaultMessage(int $status): string
     {
         return $status >= 200 && $status < 300
-            ? ApiConfig::string('api-helpers.defaults.message', 'Success')
-            : ApiConfig::string('api-helpers.defaults.error_message', 'An error occurred');
+            ? ApiConfig::message('success', 'api-helpers.defaults.message')
+            : ApiConfig::message('error', 'api-helpers.defaults.error_message');
     }
 }

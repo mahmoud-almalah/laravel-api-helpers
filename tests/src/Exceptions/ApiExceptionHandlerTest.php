@@ -100,20 +100,6 @@ it('handles authorization exceptions', function (): void {
         ->and(renderedBody(new AuthorizationException())['message'])->toBe('This action is unauthorized.');
 });
 
-it('reads exception messages from config', function (): void {
-    config([
-        'api-helpers.messages.not_found' => 'غير موجود',
-        'api-helpers.messages.unauthenticated' => 'غير مصرح',
-        'api-helpers.messages.server_error' => 'خطأ في الخادم',
-    ]);
-
-    app()['env'] = 'production';
-
-    expect(renderedBody(new ModelNotFoundException())['message'])->toBe('غير موجود')
-        ->and(renderedBody(new AuthenticationException())['message'])->toBe('غير مصرح')
-        ->and(renderedBody(new Exception('Secret', 500))['message'])->toBe('خطأ في الخادم');
-});
-
 describe('register', function (): void {
     beforeEach(function (): void {
         $handler = app(ExceptionHandler::class);

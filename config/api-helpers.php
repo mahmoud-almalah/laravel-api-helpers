@@ -5,35 +5,22 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
-    | API Defaults
+    | Default Messages
     |--------------------------------------------------------------------------
     |
-    | Messages used when a response is created without an explicit message.
+    | Messages come from the package translations (lang/{locale}/messages.php),
+    | so they follow the current locale. Publish them to edit or add a language:
+    |
+    |     php artisan vendor:publish --tag=api-helpers-lang
+    |
+    | Set a value here only to force one fixed text for every locale.
+    | `null` means "use the translation".
     |
     */
 
     'defaults' => [
-        'message' => 'Success',
-        'error_message' => 'An error occurred',
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Exception Messages
-    |--------------------------------------------------------------------------
-    |
-    | Messages returned by ApiExceptionHandler and the shortcut responses.
-    | To translate them, override these keys at runtime (for example in a
-    | service provider: config(['api-helpers.messages.not_found' => __('...')])).
-    |
-    */
-
-    'messages' => [
-        'validation' => 'Validation failed',
-        'not_found' => 'Resource not found',
-        'unauthenticated' => 'Unauthenticated',
-        'forbidden' => 'Forbidden',
-        'server_error' => 'Server Error',
+        'message' => null,
+        'error_message' => null,
     ],
 
     /*

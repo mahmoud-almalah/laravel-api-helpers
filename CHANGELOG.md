@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.3.0] - Unreleased
+The JSON response shape is unchanged. Closes #1.
+
+### Added
+- Built-in messages are now translations (`lang/en/messages.php`, `lang/ar/messages.php`) and follow the current locale, so `Unauthenticated`, `Validation failed`, `Resource not found`, `Server Error` and the default success/error messages no longer need a per-project middleware to translate them.
+- `php artisan vendor:publish --tag=api-helpers-lang` publishes the translations to `lang/vendor/api-helpers` to edit them or add a language.
+
+### Changed
+- `defaults.message` and `defaults.error_message` in `config/api-helpers.php` default to `null` (use the translation). Set a string only to force one fixed message for every locale. Configs published earlier that still contain the old English defaults keep translating.
+
+### Removed
+- The `messages` config group added in 2.2.0; use the translation files instead (`api-helpers::messages.not_found`, etc.).
+
 ## [2.2.0] - 2026-10-18
 The JSON response shape is unchanged: `success`, `message`, `data` (+ `meta` for collections, `errors` for validation, `debug` outside production).
 
