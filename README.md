@@ -1,6 +1,6 @@
 # Laravel API Helpers
 
-[![Tests](https://github.com/mahmoud-almalah/laravel-api-helpers/actions/workflows/test.yml/badge.svg)](https://github.com/mahmoud-almalah/laravel-api-helpers/actions)
+[![Tests](https://github.com/mahmoud-almalah/laravel-api-helpers/actions/workflows/tests.yml/badge.svg)](https://github.com/mahmoud-almalah/laravel-api-helpers/actions)
 [![Packagist](https://img.shields.io/packagist/v/mahmoud-almalah/laravel-api-helpers)](https://packagist.org/packages/mahmoud-almalah/laravel-api-helpers)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -34,7 +34,20 @@ You can publish the configuration file to customize the internal settings:
 php artisan vendor:publish --tag=api-helpers-config
 ```
 
-This will publish `config/api-helpers.php`.
+This will publish `config/api-helpers.php`:
+
+| Key | Default | Purpose |
+| --- | --- | --- |
+| `defaults.message` / `defaults.error_message` | `Success` / `An error occurred` | Message when none is given |
+| `messages.*` | `Validation failed`, `Resource not found`, `Unauthenticated`, `Forbidden`, `Server Error` | Exception and shortcut messages |
+| `pagination.detect` | `false` | Read the paginator from the resource when `paginator:` is omitted |
+| `pagination.include_totals` | `false` | Add `total` and `last_page` to `meta` (length aware paginators) |
+
+The defaults keep the JSON shape exactly as documented below. To translate messages, set them at runtime, for example in a service provider's `boot()`:
+
+```php
+config(['api-helpers.messages.not_found' => __('Resource not found')]);
+```
 
 ---
 
@@ -55,6 +68,22 @@ public function index()
         message: 'Operation successful'
     );
 }
+```
+
+#### Created Response
+```php
+return ApiResponse::created(
+    data: ['id' => $user->id],
+    message: 'User created'
+); // HTTP 201
+```
+
+#### Status Shortcuts
+```php
+return ApiResponse::notFound();      // 404, "Resource not found"
+return ApiResponse::unauthorized();  // 401, "Unauthenticated"
+return ApiResponse::forbidden();     // 403, "Forbidden"
+return ApiResponse::notFound('No such user'); // custom message
 ```
 
 #### Error Response
@@ -118,20 +147,20 @@ Catch exceptions and return consistent JSON error responses, including detailed 
 
 ```php
 use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Http\Request;
 use MahmoudAlmalah\LaravelApiHelpers\Exceptions\ApiExceptionHandler;
 
 ->withExceptions(function (Exceptions $exceptions) {
-    $exceptions->render(function (\Throwable $e, Request $request) {
-        if ($request->is('api/*') || $request->expectsJson()) {
-            return ApiExceptionHandler::render($e);
-        }
-    });
+    ApiExceptionHandler::register($exceptions); // api/* and JSON requests
+    // ApiExceptionHandler::register($exceptions, ['api/*', 'webhooks/*']);
 })
 ```
 
+Need full control instead? Call `ApiExceptionHandler::render($e, $request)` from your own `$exceptions->render(...)` callback.
+
+Handled out of the box: validation (`422`), model not found (`404`), unauthenticated (`401`) and any other exception (status taken from the exception, `500` otherwise).
+
 **Debug Info (Local Environment):**
-When `APP_ENV=local`, exceptions will include debug details:
+When the app is not in production, exceptions include debug details (call arguments and sensitive input such as `password` are never included, and `queries` is added when the query log is enabled):
 
 ```json
 {

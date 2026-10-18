@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
+use MahmoudAlmalah\LaravelApiHelpers\Support\ApiConfig;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class FormRequestResponse extends BaseApiResponse
 {
+    /**
+     * @param  array<string, array<int, string>>  $data  Deprecated name, will be renamed to $errors in v3.0
+     */
     public function __construct(
         ?string $message,
-        /**
-         * @var array<string, array<int, string>> $data
-         *
-         * @deprecated Parameter will be renamed to $errors in v3.0
-         */
         private array $data
     ) {
         parent::__construct(
-            $message ?? 'Validation failed',
+            $message ?? ApiConfig::string('api-helpers.messages.validation', 'Validation failed'),
             Response::HTTP_UNPROCESSABLE_ENTITY
         );
     }

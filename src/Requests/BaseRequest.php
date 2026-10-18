@@ -23,7 +23,7 @@ abstract class BaseRequest extends FormRequest
 
         throw new HttpResponseException(
             response: (new FormRequestResponse(
-                message: 'Validation failed',
+                message: null,
                 data: $errors
             ))->toResponse($this)
         );

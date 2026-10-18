@@ -22,6 +22,11 @@ return ApiResponse::success(
 );
 ```
 
+### Created Response
+```php
+return ApiResponse::created(data: ['id' => $user->id], message: 'User created'); // HTTP 201
+```
+
 ### Error Response
 ```php
 return ApiResponse::error(
@@ -54,18 +59,16 @@ return ApiResponse::collection(
 
 For the API to return standardized errors automatically, exceptions must be intercepted by the package's handler.
 
-In Laravel 11 (`bootstrap/app.php`):
+In Laravel 11+ (`bootstrap/app.php`):
 ```php
 use MahmoudAlmalah\LaravelApiHelpers\Exceptions\ApiExceptionHandler;
 
 ->withExceptions(function (Exceptions $exceptions) {
-    $exceptions->render(function (\Throwable $e, Request $request) {
-        if ($request->is('api/*') || $request->expectsJson()) {
-            return ApiExceptionHandler::render($e);
-        }
-    });
+    ApiExceptionHandler::register($exceptions); // api/* and JSON requests
 })
 ```
+
+Shortcut responses: `ApiResponse::created()`, `notFound()`, `unauthorized()`, `forbidden()`.
 
 ## 3. Validation
 

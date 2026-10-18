@@ -6,8 +6,9 @@ namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
 use Illuminate\Contracts\Pagination\Paginator as ContractsPaginator;
 use Illuminate\Contracts\Support\Responsable;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\Json\ResourceCollection;
+use MahmoudAlmalah\LaravelApiHelpers\Support\ApiConfig;
 use Symfony\Component\HttpFoundation\Response;
 
 final class ApiResponse
@@ -21,6 +22,38 @@ final class ApiResponse
             data: $data,
             message: $message,
             status: $status,
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $data
+     */
+    public static function created(?array $data = null, ?string $message = null): Responsable
+    {
+        return self::success($data, $message, Response::HTTP_CREATED);
+    }
+
+    public static function notFound(?string $message = null): Responsable
+    {
+        return self::error(
+            $message ?? ApiConfig::string('api-helpers.messages.not_found', 'Resource not found'),
+            Response::HTTP_NOT_FOUND,
+        );
+    }
+
+    public static function unauthorized(?string $message = null): Responsable
+    {
+        return self::error(
+            $message ?? ApiConfig::string('api-helpers.messages.unauthenticated', 'Unauthenticated'),
+            Response::HTTP_UNAUTHORIZED,
+        );
+    }
+
+    public static function forbidden(?string $message = null): Responsable
+    {
+        return self::error(
+            $message ?? ApiConfig::string('api-helpers.messages.forbidden', 'Forbidden'),
+            Response::HTTP_FORBIDDEN,
         );
     }
 
@@ -61,11 +94,15 @@ final class ApiResponse
      */
     public static function collection(
         string $key,
-        AnonymousResourceCollection $resource,
+        ResourceCollection $resource,
         ?string $message = null,
         int $status = Response::HTTP_OK,
         ?ContractsPaginator $paginator = null
     ): Responsable {
+        if (! $paginator instanceof ContractsPaginator && ApiConfig::bool('api-helpers.pagination.detect', false)) {
+            $paginator = $resource->resource instanceof ContractsPaginator ? $resource->resource : null;
+        }
+
         return new CollectionResponse(
             key: $key,
             collection: $resource,
@@ -76,11 +113,11 @@ final class ApiResponse
     }
 
     /**
-     * @param  array<string, array<string>>  $errors
+     * @param  array<string, array<int, string>>  $errors
      */
     public static function validation(
         array $errors,
-        string $message = 'Validation failed'
+        ?string $message = null
     ): Responsable {
         return new FormRequestResponse(
             data: $errors,

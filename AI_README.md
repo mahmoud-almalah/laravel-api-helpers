@@ -15,6 +15,7 @@ A strictly typed, opinionated Laravel package for building standardized APIs. It
 ### A. Responses (`src/Responses/`)
 Always use the `MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse` static class factory.
 - **Success:** `ApiResponse::success($data, $message)`
+- **Created (201):** `ApiResponse::created($data, $message)`
 - **Error:** `ApiResponse::error($message, $status)`
 - **Model:** `ApiResponse::model('key', $resource)`
 - **Collection:** `ApiResponse::collection('key', $resource)`
@@ -24,7 +25,12 @@ Always use the `MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse` static c
 - Old helper functions (`api_success`, etc.).
 
 ### B. Exceptions (`src/Exceptions/`)
-- Use `ApiExceptionHandler::render($e)` in your application exception handler.
+- Register with `ApiExceptionHandler::register($exceptions)` in `bootstrap/app.php`, or call `ApiExceptionHandler::render($e, $request)` from your own renderer.
+- Shortcuts: `ApiResponse::notFound()`, `unauthorized()`, `forbidden()`. Messages come from `api-helpers.messages.*` config; do not hardcode new strings.
+- `pagination.detect` and `pagination.include_totals` are opt-in config flags and must stay `false` by default.
+
+### C. JSON contract (never change without a major version)
+`{ success, message, data }`, plus `meta` (collections), `errors` (validation) and `debug` (non-production errors). Default messages are resolved in `BaseApiResponse`; new response types must extend it and only implement `buildPayload()`.
 
 ## 3. Testing Standards
 - **Framework:** [Pest PHP](https://pestphp.com).

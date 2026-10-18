@@ -6,20 +6,30 @@ namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\JsonResponse;
-use Throwable;
+use MahmoudAlmalah\LaravelApiHelpers\Support\ApiConfig;
 
 abstract readonly class BaseApiResponse implements Responsable
 {
-    public function __construct(
-        protected string $message,
-        protected int $status,
-    ) {}
+    protected string $message;
 
     /**
+     * @param  string|null  $message  Falls back to the configured success/error message when null.
+     */
+    public function __construct(?string $message, protected int $status)
+    {
+        $this->message = $message ?? $this->defaultMessage($status);
+    }
+
+    /**
+     * The full JSON body of the response.
+     *
      * @return array<string, mixed>
      */
     abstract protected function buildPayload(): array;
 
+    /**
+     * @param  \Illuminate\Http\Request  $request
+     */
     public function toResponse($request): JsonResponse
     {
         return new JsonResponse(
@@ -28,28 +38,15 @@ abstract readonly class BaseApiResponse implements Responsable
         );
     }
 
-    protected static function resolveConfig(string $key, string $default): string
-    {
-        $container = \Illuminate\Container\Container::getInstance();
-
-        if ($container instanceof \Mockery\MockInterface) {
-            return $default;
-        }
-
-        try {
-            if ($container->bound('config')) {
-                $value = config($key, $default);
-
-                return is_string($value) ? $value : $default;
-            }
-        } catch (Throwable) {
-        }
-
-        return $default;
-    }
-
     protected function isSuccessful(): bool
     {
         return $this->status >= 200 && $this->status < 300;
+    }
+
+    private function defaultMessage(int $status): string
+    {
+        return $status >= 200 && $status < 300
+            ? ApiConfig::string('api-helpers.defaults.message', 'Success')
+            : ApiConfig::string('api-helpers.defaults.error_message', 'An error occurred');
     }
 }

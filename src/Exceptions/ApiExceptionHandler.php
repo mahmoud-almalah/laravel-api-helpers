@@ -4,119 +4,156 @@ declare(strict_types=1);
 
 namespace MahmoudAlmalah\LaravelApiHelpers\Exceptions;
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use MahmoudAlmalah\LaravelApiHelpers\Responses\ApiResponse;
+use MahmoudAlmalah\LaravelApiHelpers\Support\ApiConfig;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 final class ApiExceptionHandler
 {
     /**
+     * Request input that is never echoed back in the debug payload.
+     *
+     * @var list<string>
+     */
+    private const array HIDDEN_INPUT = ['password', 'password_confirmation', 'current_password', 'token'];
+
+    private const int TRACE_LIMIT = 5;
+
+    /**
      * Render an exception into an HTTP response.
      */
-    public static function render(Throwable $e): Response
+    public static function render(Throwable $e, ?Request $request = null): Response
+    {
+        $request ??= request();
+
+        return self::toApiResponse($e, $request)->toResponse($request);
+    }
+
+    /**
+     * Register the handler for API requests (`api/*` by default) and any
+     * request that expects JSON. Other requests keep Laravel's rendering.
+     *
+     * @param  list<string>  $paths
+     */
+    public static function register(Exceptions $exceptions, array $paths = ['api/*']): void
+    {
+        $exceptions->render(static fn (Throwable $e, Request $request): ?Response => $request->is($paths) || $request->expectsJson()
+            ? self::render($e, $request)
+            : null);
+    }
+
+    private static function toApiResponse(Throwable $e, Request $request): Responsable
     {
         return match (true) {
-            $e instanceof ValidationException => self::renderValidation($e),
-            $e instanceof ModelNotFoundException => self::renderModelNotFound(),
-            $e instanceof AuthenticationException => self::renderAuthentication(),
-            default => self::renderGeneric($e),
+            $e instanceof ValidationException => ApiResponse::validation($e->errors(), $e->getMessage()),
+            self::isModelNotFound($e) => ApiResponse::notFound(),
+            $e instanceof AuthenticationException => ApiResponse::unauthorized(),
+            $e instanceof AuthorizationException => ApiResponse::forbidden($e->getMessage() ?: null),
+            default => self::toGenericResponse($e, $request),
         };
     }
 
-    private static function renderValidation(ValidationException $e): Response
+    /**
+     * Laravel converts a ModelNotFoundException into a NotFoundHttpException
+     * before custom renderers run, so the original is found on the previous chain.
+     */
+    private static function isModelNotFound(Throwable $e): bool
     {
-        return ApiResponse::validation($e->errors(), $e->getMessage())->toResponse(request());
+        return $e instanceof ModelNotFoundException
+            || ($e instanceof NotFoundHttpException && $e->getPrevious() instanceof ModelNotFoundException);
     }
 
-    private static function renderModelNotFound(): Response
+    private static function toGenericResponse(Throwable $e, Request $request): Responsable
     {
-        return ApiResponse::error(
-            message: 'Resource not found',
-            status: Response::HTTP_NOT_FOUND
-        )->toResponse(request());
-    }
+        $status = self::resolveStatusCode($e);
+        $isProduction = app()->environment('production');
 
-    private static function renderAuthentication(): Response
-    {
-        return ApiResponse::error(
-            message: 'Unauthenticated',
-            status: Response::HTTP_UNAUTHORIZED
-        )->toResponse(request());
-    }
-
-    private static function renderGeneric(Throwable $e): Response
-    {
-        $statusCode = self::resolveStatusCode($e);
-        $message = $e->getMessage();
-
-        // Hide internal error details in production generally, but here we just pass message.
-        if (app()->environment('production') && $statusCode === Response::HTTP_INTERNAL_SERVER_ERROR) {
-            $message = 'Server Error';
-        }
+        $message = $isProduction && $status === Response::HTTP_INTERNAL_SERVER_ERROR
+            ? ApiConfig::string('api-helpers.messages.server_error', 'Server Error')
+            : $e->getMessage();
 
         return ApiResponse::error(
-            message: $message,
-            status: $statusCode,
-            debug: self::buildDebugPayload($e)
-        )->toResponse(request());
+            message: $message === '' ? (Response::$statusTexts[$status] ?? 'Error') : $message,
+            status: $status,
+            debug: $isProduction ? null : self::buildDebugPayload($e, $request),
+        );
     }
 
     private static function resolveStatusCode(Throwable $e): int
     {
-        // If specific HTTP interface is used
-        if (method_exists($e, 'getStatusCode')) {
-            return (int) $e->getStatusCode();
-        }
+        $status = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : $e->getCode();
 
-        $statusCode = $e->getCode();
-
-        // Ensure status code is a valid HTTP status (100-599)
-        // PDOExceptions often have alphanumeric codes
-        if (! is_int($statusCode) || $statusCode < 100 || $statusCode > 599) {
+        // Some exceptions (e.g. PDOException) carry non-numeric or out-of-range codes.
+        if (! is_numeric($status) || $status < 100 || $status > 599) {
             return Response::HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        return $statusCode;
+        return (int) $status;
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return array<string, mixed>
      */
-    private static function buildDebugPayload(Throwable $e): ?array
+    private static function buildDebugPayload(Throwable $e, Request $request): array
     {
-        if (app()->environment('production')) {
-            return null;
-        }
-
-        $currentRequest = request();
-
         $debug = [
             'exception' => [
                 'class' => $e::class,
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => collect($e->getTrace())->take(5)->toArray(), // Limit trace
+                'trace' => self::buildTrace($e),
             ],
             'request' => [
-                'method' => $currentRequest->method(),
-                'url' => $currentRequest->fullUrl(),
-                'input' => $currentRequest->all(),
+                'method' => $request->method(),
+                'url' => $request->fullUrl(),
+                'input' => $request->except(self::HIDDEN_INPUT),
             ],
             'time' => now()->toIso8601String(),
         ];
 
-        // Attempt to get query logs if enabled
-        if (method_exists(DB::class, 'getQueryLog')) {
-            $queries = DB::getQueryLog();
-            if (! empty($queries)) {
-                $debug['queries'] = $queries;
-            }
+        $queries = self::queryLog();
+
+        if ($queries !== []) {
+            $debug['queries'] = $queries;
         }
 
         return $debug;
+    }
+
+    /**
+     * The first frames of the trace, without call arguments
+     * (they can hold secrets and are often not JSON-encodable).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function buildTrace(Throwable $e): array
+    {
+        return array_map(
+            static fn (array $frame): array => Arr::except($frame, 'args'),
+            array_slice($e->getTrace(), 0, self::TRACE_LIMIT),
+        );
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function queryLog(): array
+    {
+        try {
+            return DB::connection()->logging() ? DB::getQueryLog() : [];
+        } catch (Throwable) {
+            return [];
+        }
     }
 }

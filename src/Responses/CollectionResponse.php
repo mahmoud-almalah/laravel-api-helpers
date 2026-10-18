@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace MahmoudAlmalah\LaravelApiHelpers\Responses;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Contracts\Pagination\Paginator as ContractsPaginator;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Resources\Json\ResourceCollection;
+use MahmoudAlmalah\LaravelApiHelpers\Support\ApiConfig;
 use Symfony\Component\HttpFoundation\Response;
 
 final readonly class CollectionResponse extends BaseApiResponse
 {
+    /**
+     * @param  array<array-key, mixed>|ResourceCollection  $collection
+     * @param  ContractsPaginator<array-key, mixed>|null  $paginator
+     */
     public function __construct(
         private string $key,
-        /** @var array<string, mixed>|AnonymousResourceCollection $collection */
-        private array|AnonymousResourceCollection $collection,
-        /** @var ContractsPaginator<array-key, mixed>|null $paginator */
+        private array|ResourceCollection $collection,
         private ?ContractsPaginator $paginator = null,
         ?string $message = null,
-        int $status = Response::HTTP_OK
+        int $status = Response::HTTP_OK,
     ) {
-        $message ??= ($status >= 200 && $status < 300)
-            ? self::resolveConfig('api-helpers.defaults.message', 'Success')
-            : self::resolveConfig('api-helpers.defaults.error_message', 'An error occurred');
-
         parent::__construct($message, $status);
     }
 
@@ -34,23 +34,30 @@ final readonly class CollectionResponse extends BaseApiResponse
             'data' => [
                 $this->key => $this->collection,
             ],
-            'meta' => $this->getMeta(),
+            'meta' => $this->buildMeta(),
         ];
     }
 
     /**
      * @return array<string, bool|int>|null
      */
-    private function getMeta(): ?array
+    private function buildMeta(): ?array
     {
-        if (is_null($this->paginator)) {
+        if (! $this->paginator instanceof ContractsPaginator) {
             return null;
         }
 
-        return [
+        $meta = [
             'current_page' => $this->paginator->currentPage(),
             'per_page' => $this->paginator->perPage(),
             'has_more_pages' => $this->paginator->hasMorePages(),
         ];
+
+        if ($this->paginator instanceof LengthAwarePaginator && ApiConfig::bool('api-helpers.pagination.include_totals', false)) {
+            $meta['total'] = $this->paginator->total();
+            $meta['last_page'] = $this->paginator->lastPage();
+        }
+
+        return $meta;
     }
 }

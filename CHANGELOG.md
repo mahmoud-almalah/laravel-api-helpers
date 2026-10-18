@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] - Unreleased
+The JSON response shape is unchanged: `success`, `message`, `data` (+ `meta` for collections, `errors` for validation, `debug` outside production).
+
+### Added
+- `ApiResponse::created()`, `notFound()`, `unauthorized()` and `forbidden()` shortcuts.
+- `ApiExceptionHandler::register($exceptions)` registers the handler for `api/*` and JSON requests in one line (paths are configurable).
+- `messages` config group (`validation`, `not_found`, `unauthenticated`, `forbidden`, `server_error`) so exception messages can be customised or translated.
+- Opt-in `pagination.detect` config: `ApiResponse::collection()` reads the paginator from the resource when `paginator` is omitted.
+- Opt-in `pagination.include_totals` config: adds `total` and `last_page` to `meta` for length aware paginators.
+- `ApiExceptionHandler` maps a raw `AuthorizationException` to `403` (it was `500`).
+- `.gitattributes` forces LF line endings and CI now runs the Rector check.
+- `ApiExceptionHandler::render()` accepts an optional `Request`; it defaults to the current request.
+- `ApiResponse::collection()` / `CollectionResponse` accept any `ResourceCollection` (e.g. your own `UserCollection`), not only `AnonymousResourceCollection`.
+
+### Changed
+- The default success/error message is now resolved once in `BaseApiResponse` instead of being copy-pasted in every response class.
+- `ApiExceptionHandler` returns the HTTP status text (e.g. `Not Found`) when an exception has an empty message, instead of an empty string.
+- Exception codes outside `100-599` (or non-numeric ones) fall back to `500`.
+- Debug traces no longer include call arguments, and `password`, `password_confirmation`, `current_password` and `token` are removed from the debug `input`.
+
+### Fixed
+- A `NotFoundHttpException` wrapping a `ModelNotFoundException` (what Laravel passes to render callbacks) now returns `Resource not found` instead of leaking the model class name.
+- The `queries` debug entry was never returned because the query log check used `method_exists()` on the `DB` facade; it now works when the query log is enabled.
+- Removed Mockery-specific code from `BaseApiResponse` production code.
+
 ## [2.1.0] - 2026-07-12
 ### Added
 - Abstract `BaseApiResponse` class to unify and clean up JSON structure building.
