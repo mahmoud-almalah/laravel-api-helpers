@@ -256,7 +256,7 @@ describe('debug payload', function (): void {
 
     it('includes the query log when it is enabled', function (): void {
         DB::connection()->enableQueryLog();
-        DB::connection()->select('select 1');
+        DB::connection()->logQuery('select 1', [], 1.0);
 
         $debug = debugOf(new Exception('Query Error', 500), Request::create('/'));
 
